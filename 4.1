@@ -1,0 +1,77 @@
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <string>
+#include <fstream>
+#include <sstream>
+
+using namespace std;
+
+struct Reference {
+    string author;
+    string title;
+    string year;
+    string page;
+};
+
+bool isRussian(char ch) {
+
+    if (ch >= 0 && ch <= 127) {
+        return false;
+    }
+    return true;
+}
+
+void printReferences(const vector<Reference>& references, bool withNumbers) {
+    for (size_t i = 0; i < references.size(); i++) {
+        if (withNumbers) {
+            cout << i + 1 << ". ";
+        }
+        cout << references[i].author << " " << references[i].year << ". " << references[i].title << " " << references[i].page << endl;
+    }
+}
+
+int main() {
+    setlocale(LC_ALL, "RUS");
+    vector <Reference> references;
+    ifstream file("bd.txt");
+    if (!file.is_open()) {
+        cout << "Ошибка открытия файла." << endl;
+        return 1;
+    }
+
+    string line;
+    while (getline(file, line)) {
+        string author, title, year, page;
+        istringstream iss(line);
+        getline(iss, author, ',');
+        getline(iss, year, ',');
+        getline(iss, title, ',');
+        iss >> page;
+        Reference ref = { author, title, year, page };
+        references.push_back(ref);
+    }
+    file.close();
+
+
+    sort(references.begin(), references.end(), [](const Reference& a, const Reference& b) {
+
+        if (isRussian(a.author[0]) && !isRussian(b.author[0])) {
+            return true;
+        }
+        else if (!isRussian(a.author[0]) && isRussian(b.author[0])) {
+            return false;
+        }
+        else {
+            return a.author < b.author;
+        }
+        });
+
+    cout << "Список литературы (с номерами):" << endl;
+    printReferences(references, true);
+
+    cout << endl << "Список литературы (без номеров):" << endl;
+    printReferences(references, false);
+
+    return 0;
+}
